@@ -64,7 +64,7 @@
     }
     .language-picker {
       position: fixed;
-      top: 4px;
+      top: 10px;
       right: 14px;
       z-index: 4;
       width: max-content;
@@ -167,6 +167,18 @@
       font-weight: 800;
       cursor: pointer;
     }
+    #clear {
+      width: 100%;
+      margin-top: 8px;
+      padding: 12px;
+      border: 1px solid #f87171;
+      border-radius: 10px;
+      background: transparent;
+      color: #fecaca;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    #clear:hover { background: #7f1d1d; }
     @media (max-width: 600px) {
       body { padding: 10px; }
       .room { padding: 14px; }
@@ -202,6 +214,7 @@
     <form id="lessonsForm">
       <div id="lessons" class="lessons"></div>
       <button id="add" type="submit">Qo‘shish</button>
+      <button id="clear" type="button">Dars va kitoblarni tozalash</button>
     </form>
   </main>
   <script>
@@ -219,9 +232,9 @@
       });
     });
     const translations = {
-      uz: { title: 'Mening darslarim va kitoblarim', back: 'Jadvalga qaytish', hint: 'Bu yerga fan yoki kitob nomini kiriting.', add: 'Qo‘shish', schedule: 'Dars jadvali', diary: 'Kundalikni yangilash', placeholder: 'dars yoki kitob' },
-      ru: { title: 'Мои уроки и книги', back: 'Вернуться к расписанию', hint: 'Введите название предмета или книги.', add: 'Добавить', schedule: 'Расписание', diary: 'Обновить дневник', placeholder: 'урок или книга' },
-      en: { title: 'My lessons and books', back: 'Back to schedule', hint: 'Enter a lesson or book name.', add: 'Add', schedule: 'Schedule', diary: 'Update diary', placeholder: 'lesson or book' }
+      uz: { title: 'Mening darslarim va kitoblarim', back: 'Jadvalga qaytish', hint: 'Bu yerga fan yoki kitob nomini kiriting.', add: 'Qo‘shish', clear: 'Dars va kitoblarni tozalash', confirmClear: 'Barcha fan va kitob nomlari o‘chirilsinmi?', schedule: 'Dars jadvali', diary: 'Kundalikni yangilash', placeholder: 'dars yoki kitob' },
+      ru: { title: 'Мои уроки и книги', back: 'Вернуться к расписанию', hint: 'Введите название предмета или книги.', add: 'Добавить', clear: 'Очистить уроки и книги', confirmClear: 'Удалить все названия предметов и книг?', schedule: 'Расписание', diary: 'Обновить дневник', placeholder: 'урок или книга' },
+      en: { title: 'My lessons and books', back: 'Back to schedule', hint: 'Enter a lesson or book name.', add: 'Add', clear: 'Clear lessons and books', confirmClear: 'Delete all lesson and book names?', schedule: 'Schedule', diary: 'Update diary', placeholder: 'lesson or book' }
     };
     function applyLanguage(language) {
       const text = translations[language];
@@ -229,6 +242,7 @@
       document.querySelector('.back').textContent = text.back;
       document.querySelector('.hint').textContent = text.hint;
       document.getElementById('add').textContent = text.add;
+      document.getElementById('clear').textContent = text.clear;
       document.querySelector('.menu a[href="index.html"]').textContent = text.schedule;
       document.querySelector('.menu a[href="kundalik.html"]').textContent = text.diary;
       document.querySelectorAll('.lesson input').forEach((input, index) => {
@@ -254,7 +268,7 @@
       menu.setAttribute('aria-hidden', String(!isOpen));
     });
 
-    const saved = JSON.parse(localStorage.getItem('myScheduleItems') || '[]');
+    let saved = JSON.parse(localStorage.getItem('myScheduleItems') || '[]');
     const lessons = document.getElementById('lessons');
     for (let index = 0; index < 36; index += 1) {
       const row = document.createElement('label');
@@ -277,7 +291,17 @@
       localStorage.setItem('myScheduleItems', JSON.stringify(values));
       const addButton = document.getElementById('add');
       addButton.textContent = 'Qo‘shildi ✓';
-      setTimeout(() => { addButton.textContent = 'Qo‘shish'; }, 1500);
+      setTimeout(() => { addButton.textContent = translations[languageSelect.value].add; }, 1500);
+    });
+    document.getElementById('clear').addEventListener('click', () => {
+      const text = translations[languageSelect.value];
+      if (!window.confirm(text.confirmClear)) return;
+      saved = [];
+      localStorage.setItem('myScheduleItems', JSON.stringify([]));
+      lessons.querySelectorAll('input').forEach(input => { input.value = ''; });
+      const clearButton = document.getElementById('clear');
+      clearButton.textContent = `${text.clear} ✓`;
+      setTimeout(() => { clearButton.textContent = translations[languageSelect.value].clear; }, 1500);
     });
   </script>
 </body>
