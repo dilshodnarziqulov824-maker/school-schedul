@@ -64,6 +64,7 @@
   .brand span { color: #38bdf8; }
   .live {
     position: absolute;
+    top: 18px;
     left: 70px;
     color: #86efac;
     font-size: 13px;
@@ -485,6 +486,7 @@
     background: #0f172a;
     color: #e2e8f0;
   }
+  .personal-book.hidden-book { display: none; }
 
   .personal-book strong {
     color: #7dd3fc;
@@ -1068,8 +1070,9 @@
         .map(item => String(item || '').trim())
         .filter(Boolean);
       personalLibraryList.innerHTML = items.length
-        ? items.map((item, index) => `<div class="personal-book"><strong>${index + 1}.</strong>${item.replace(/</g, '&lt;')}</div>`).join('')
+        ? items.map((item, index) => `<div class="personal-book" data-search="${item.toLowerCase().replace(/"/g, '&quot;')}"><strong>${index + 1}.</strong>${item.replace(/</g, '&lt;')}</div>`).join('')
         : `<div class="no-results">${translations[languageSelect.value].empty}</div>`;
+      filterSearchResults();
     }
 
     renderPersonalLibrary();
@@ -1344,12 +1347,17 @@
       }
     });
 
-    searchInput.addEventListener('input', () => {
+    function filterSearchResults() {
       const query = searchInput.value.trim().toLowerCase();
       document.querySelectorAll('.day-card').forEach(card => {
         card.classList.toggle('hidden-card', !card.dataset.search.includes(query));
       });
-    });
+      document.querySelectorAll('.personal-book').forEach(book => {
+        book.classList.toggle('hidden-book', !book.dataset.search.includes(query));
+      });
+    }
+
+    searchInput.addEventListener('input', filterSearchResults);
 
   </script>
 </body>
