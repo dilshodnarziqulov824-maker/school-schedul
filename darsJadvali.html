@@ -5,135 +5,134 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dars jadvali</title>
+<style>
+  * {
+    transition: 1s;
+    box-sizing: border-box;
+    color: snow;
+  }
 
-  <style>
-    * {
-      transition: 1s;
-      box-sizing: border-box;
-      color: snow;
-    }
+  body {
+    margin: 0;
+    padding: 30px 20px;
+    font-family: Arial, sans-serif;
+    background: #424242;
+    color: #111;
+    background-repeat: no-repeat;
+  }
 
-    body {
-      margin: 0;
-      padding: 30px 20px;
-      font-family: Arial, sans-serif;
-      background: #424242;
-      color: #111;
-      background-repeat: no-repeat;
-    }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
 
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
+  h1 {
+    text-align: center;
+    margin: 0 0 12px;
+    font-size: 30px;
+  }
 
+  .header-note {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 22px;
+  }
+
+  .schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .day-card {
+    background: #fff;
+    border: 1px solid #000000;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .day-card.open {
+    border: 2px solid #030303;
+    background: #eef7ff;
+  }
+
+  .day-toggle {
+    width: 100%;
+    text-align: left;
+    border: 0;
+    background: transparent;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 8px 8px 12px;
+    color: #ffffff;
+  }
+
+  .day-toggle.active {
+    background: rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+  }
+
+  .today-button {
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.9);
+    background: rgba(255,255,255,0.12);
+  }
+
+  .day-content {
+    margin-top: 8px;
+    background: rgba(0, 0, 0, 0.28);
+    padding: 8px 10px;
+    border-radius: 8px;
+    max-height: 1000px;
+    opacity: 1;
+    overflow: hidden;
+    transition: max-height 1s ease, opacity 1s ease, padding 0.5s ease, margin 0.5s ease;
+  }
+
+  .day-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+  }
+
+  .subjects {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    color: #000000;
+  }
+
+  .subjects li {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.4);
+    line-height: 1.4;
+    color: #ffffff;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  }
+
+  .subjects li:last-child {
+    border-bottom: 0;
+  }
+
+  .empty {
+    color: #fff;
+    font-style: italic;
+  }
+
+  @media (max-width: 600px) {
     h1 {
-      text-align: center;
-      margin: 0 0 12px;
-      font-size: 30px;
+      font-size: 24px;
     }
 
-    .header-note {
-      text-align: center;
+    .day-name {
       font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 22px;
     }
-
-    .schedule-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-    }
-
-    .day-card {
-      background: #fff;
-      border: 1px solid #000000;
-      border-radius: 10px;
-      padding: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    }
-
-    .day-card.open {
-      border: 2px solid #030303;
-      background: #eef7ff;
-    }
-
-    .day-toggle {
-      width: 100%;
-      text-align: left;
-      border: 0;
-      background: transparent;
-      font-size: 20px;
-      font-weight: 700;
-      cursor: pointer;
-      padding: 8px 8px 12px;
-      color: #ffffff;
-    }
-
-    .day-toggle.active {
-      background: rgba(255, 255, 255, 0.14);
-      border-radius: 8px;
-    }
-
-    .today-button {
-      box-shadow: 0 0 0 2px rgba(255,255,255,0.9);
-      background: rgba(255,255,255,0.12);
-    }
-
-    .day-content {
-      margin-top: 8px;
-      background: rgba(0, 0, 0, 0.28);
-      padding: 8px 10px;
-      border-radius: 8px;
-      max-height: 1000px;
-      opacity: 1;
-      overflow: hidden;
-      transition: max-height 1s ease, opacity 1s ease, padding 0.5s ease, margin 0.5s ease;
-    }
-
-    .day-content.collapsed {
-      max-height: 0;
-      opacity: 0;
-      padding-top: 0;
-      padding-bottom: 0;
-      margin-top: 0;
-    }
-
-    .subjects {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      color: #000000;
-    }
-
-    .subjects li {
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.4);
-      line-height: 1.4;
-      color: #ffffff;
-      font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    }
-
-    .subjects li:last-child {
-      border-bottom: 0;
-    }
-
-    .empty {
-      color: #fff;
-      font-style: italic;
-    }
-
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 24px;
-      }
-
-      .day-name {
-        font-size: 18px;
-      }
-    }
-  </style>
+  }
+</style>
 </head>
 
 <body>
@@ -316,5 +315,6 @@
     });
   </script>
 </body>
+
 
 </html>
