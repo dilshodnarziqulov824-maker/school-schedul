@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mening darslarim va kitoblarim</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      color: #e2e8f0;
+      background-color: #0f172a;
+      background-image: linear-gradient(rgba(15, 23, 42, .28), rgba(15, 23, 42, .28)), url('orqafon.png');
+      background-position: center;
+      background-size: cover;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+    }
+    .room {
+      width: min(100%, 760px);
+      margin: 0 auto;
+      padding: 20px;
+      background: #1e293b;
+      border: 1px solid #475569;
+      border-radius: 18px;
+    }
+    .menu-button {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 3;
+      padding: 8px 11px;
+      border: 1px solid #38bdf8;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #7dd3fc;
+      font-size: 22px;
+      cursor: pointer;
+    }
+    .menu {
+      position: fixed;
+      top: 58px;
+      left: 14px;
+      z-index: 2;
+      display: none;
+      min-width: 210px;
+      padding: 10px;
+      border: 1px solid #475569;
+      border-radius: 10px;
+      background: #1e293b;
+    }
+    .menu.open { display: grid; gap: 8px; }
+    .menu a {
+      padding: 9px;
+      border-radius: 7px;
+      color: #e2e8f0;
+      text-decoration: none;
+    }
+    .menu a:hover { background: #334155; }
+    .language-select {
+      display: none;
+    }
+    .language-picker {
+      position: fixed;
+      top: 4px;
+      right: 14px;
+      z-index: 4;
+      width: max-content;
+      min-width: 78px;
+      color: #0f172a;
+    }
+    .language-current {
+      width: 100%;
+      padding: 8px 10px;
+      border: 0;
+      border-radius: 18px;
+      border: 1px solid #38bdf8;
+      background: rgba(15, 23, 42, .96);
+      color: #e2e8f0;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, .35);
+    }
+    .language-current::after { content: '⌄'; float: right; }
+    .language-options {
+      display: none;
+      overflow: hidden;
+      margin-top: 2px;
+      border-radius: 0 0 18px 18px;
+      border: 1px solid #334155;
+      border-top: 0;
+      background: rgba(15, 23, 42, .98);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, .18);
+    }
+    .language-picker.open .language-options { display: block; }
+    .language-option {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 10px;
+      padding: 10px 14px;
+      border: 0;
+      background: transparent;
+      color: #e2e8f0;
+      font-size: 15px;
+      text-align: left;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .language-option:hover, .language-option.active { background: #1e3a5f; color: #7dd3fc; }
+    .language-flag { font-size: 22px; line-height: 1; }
+    @media (max-width: 600px) {
+      .language-picker { right: 8px; min-width: 78px; }
+    }
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    h1 { margin: 0; color: #fff; font-size: 24px; }
+    .back {
+      color: #082f49;
+      background: #38bdf8;
+      border-radius: 9px;
+      padding: 10px 14px;
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .hint { color: #cbd5e1; font-size: 14px; }
+    .lessons {
+      display: grid;
+      gap: 8px;
+    }
+    .lesson {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .lesson-number {
+      min-width: 28px;
+      color: #7dd3fc;
+      font-weight: 800;
+      text-align: right;
+    }
+    .lesson input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #475569;
+      border-radius: 7px;
+      background: #0f172a;
+      color: #fff;
+    }
+    #add {
+      width: 100%;
+      margin-top: 16px;
+      padding: 12px;
+      border: 0;
+      border-radius: 10px;
+      background: #38bdf8;
+      color: #082f49;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      .room { padding: 14px; }
+      .top { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <select id="languageSelect" class="language-select" aria-label="Til">
+    <option value="uz">🇺🇿 O‘zbek</option>
+    <option value="ru">🇷🇺 Русский</option>
+    <option value="en">🇬🇧 English</option>
+  </select>
+  <div id="languagePicker" class="language-picker">
+    <button id="languageCurrent" class="language-current" type="button"></button>
+    <div class="language-options">
+      <button class="language-option" type="button" data-language="en">EN</button>
+      <button class="language-option" type="button" data-language="ru">RU</button>
+      <button class="language-option" type="button" data-language="uz">UZ</button>
+    </div>
+  </div>
+  <button id="menuButton" class="menu-button" type="button" aria-label="Menyuni ochish" aria-expanded="false">☰</button>
+  <nav id="menu" class="menu" aria-hidden="true">
+    <a href="index.html">Dars jadvali</a>
+    <a href="kundalik.html">Kundalikni yangilash</a>
+  </nav>
+  <main class="room">
+    <div class="top">
+      <h1>Mening darslarim va kitoblarim</h1>
+      <a class="back" href="index.html">Jadvalga qaytish</a>
+    </div>
+    <p class="hint">Bu yerga fan yoki kitob nomini kiriting.</p>
+    <form id="lessonsForm">
+      <div id="lessons" class="lessons"></div>
+      <button id="add" type="submit">Qo‘shish</button>
+    </form>
+  </main>
+  <script>
+    const languageSelect = document.getElementById('languageSelect');
+    const languagePicker = document.getElementById('languagePicker');
+    const languageCurrent = document.getElementById('languageCurrent');
+    const languageLabels = { uz: 'UZ', ru: 'RU', en: 'EN' };
+    languageCurrent.textContent = languageLabels[localStorage.getItem('siteLanguage') || 'uz'];
+    languageCurrent.addEventListener('click', () => languagePicker.classList.toggle('open'));
+    document.querySelectorAll('.language-option').forEach(option => {
+      option.addEventListener('click', () => {
+        languageSelect.value = option.dataset.language;
+        languageSelect.dispatchEvent(new Event('change'));
+        languagePicker.classList.remove('open');
+      });
+    });
+    const translations = {
+      uz: { title: 'Mening darslarim va kitoblarim', back: 'Jadvalga qaytish', hint: 'Bu yerga fan yoki kitob nomini kiriting.', add: 'Qo‘shish', schedule: 'Dars jadvali', diary: 'Kundalikni yangilash', placeholder: 'dars yoki kitob' },
+      ru: { title: 'Мои уроки и книги', back: 'Вернуться к расписанию', hint: 'Введите название предмета или книги.', add: 'Добавить', schedule: 'Расписание', diary: 'Обновить дневник', placeholder: 'урок или книга' },
+      en: { title: 'My lessons and books', back: 'Back to schedule', hint: 'Enter a lesson or book name.', add: 'Add', schedule: 'Schedule', diary: 'Update diary', placeholder: 'lesson or book' }
+    };
+    function applyLanguage(language) {
+      const text = translations[language];
+      document.querySelector('h1').textContent = text.title;
+      document.querySelector('.back').textContent = text.back;
+      document.querySelector('.hint').textContent = text.hint;
+      document.getElementById('add').textContent = text.add;
+      document.querySelector('.menu a[href="index.html"]').textContent = text.schedule;
+      document.querySelector('.menu a[href="kundalik.html"]').textContent = text.diary;
+      document.querySelectorAll('.lesson input').forEach((input, index) => {
+        input.placeholder = `${index + 1}-${text.placeholder}`;
+      });
+      document.documentElement.lang = language;
+      localStorage.setItem('siteLanguage', language);
+      languageCurrent.textContent = languageLabels[language];
+      document.querySelectorAll('.language-option').forEach(option => {
+        option.classList.toggle('active', option.dataset.language === language);
+      });
+    }
+    languageSelect.value = localStorage.getItem('siteLanguage') || 'uz';
+    applyLanguage(languageSelect.value);
+    languageSelect.addEventListener('change', event => applyLanguage(event.target.value));
+
+    const menuButton = document.getElementById('menuButton');
+    const menu = document.getElementById('menu');
+    menuButton.addEventListener('click', () => {
+      const isOpen = menu.classList.toggle('open');
+      menuButton.setAttribute('aria-expanded', String(isOpen));
+      menuButton.setAttribute('aria-label', isOpen ? 'Menyuni yopish' : 'Menyuni ochish');
+      menu.setAttribute('aria-hidden', String(!isOpen));
+    });
+
+    const saved = JSON.parse(localStorage.getItem('myScheduleItems') || '[]');
+    const lessons = document.getElementById('lessons');
+    for (let index = 0; index < 36; index += 1) {
+      const row = document.createElement('label');
+      row.className = 'lesson';
+      row.innerHTML = `<span class="lesson-number">${index + 1}.</span>`;
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = `${index + 1}-dars yoki kitob`;
+      input.value = saved[index] || '';
+      row.appendChild(input);
+      lessons.appendChild(row);
+    }
+    applyLanguage(languageSelect.value);
+    document.getElementById('lessonsForm').addEventListener('submit', event => {
+      event.preventDefault();
+      const values = [...lessons.querySelectorAll('input')].map((input, index) => {
+        const value = input.value.trim();
+        return value || saved[index] || '';
+      });
+      localStorage.setItem('myScheduleItems', JSON.stringify(values));
+      const addButton = document.getElementById('add');
+      addButton.textContent = 'Qo‘shildi ✓';
+      setTimeout(() => { addButton.textContent = 'Qo‘shish'; }, 1500);
+    });
+  </script>
+</body>
+</html>

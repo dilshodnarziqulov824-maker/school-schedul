@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kundalikni yangilash</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      color: #e2e8f0;
+      background-color: #0f172a;
+      background-image: linear-gradient(rgba(15, 23, 42, .28), rgba(15, 23, 42, .28)), url('orqafon.png');
+      background-position: center;
+      background-size: cover;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+    }
+    .room {
+      width: min(100%, 900px);
+      margin: 0 auto;
+      padding: 20px;
+      background: #1e293b;
+      border: 1px solid #475569;
+      border-radius: 18px;
+    }
+    .menu-button {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 3;
+      padding: 8px 11px;
+      border: 1px solid #38bdf8;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #7dd3fc;
+      font-size: 22px;
+      cursor: pointer;
+    }
+    .menu {
+      position: fixed;
+      top: 58px;
+      left: 14px;
+      z-index: 2;
+      display: none;
+      min-width: 210px;
+      padding: 10px;
+      border: 1px solid #475569;
+      border-radius: 10px;
+      background: #1e293b;
+    }
+    .menu.open { display: grid; gap: 8px; }
+    .menu a {
+      padding: 9px;
+      border-radius: 7px;
+      color: #e2e8f0;
+      text-decoration: none;
+    }
+    .menu a:hover { background: #334155; }
+    .language-select {
+      display: none;
+    }
+    .language-picker {
+      position: fixed;
+      top: 4px;
+      right: 14px;
+      z-index: 4;
+      width: max-content;
+      min-width: 78px;
+      color: #0f172a;
+    }
+    .language-current {
+      width: 100%;
+      padding: 8px 10px;
+      border: 0;
+      border-radius: 18px;
+      border: 1px solid #38bdf8;
+      background: rgba(15, 23, 42, .96);
+      color: #e2e8f0;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, .35);
+    }
+    .language-current::after { content: '⌄'; float: right; }
+    .language-options {
+      display: none;
+      overflow: hidden;
+      margin-top: 2px;
+      border-radius: 0 0 18px 18px;
+      border: 1px solid #334155;
+      border-top: 0;
+      background: rgba(15, 23, 42, .98);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, .18);
+    }
+    .language-picker.open .language-options { display: block; }
+    .language-option {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 10px;
+      padding: 10px 14px;
+      border: 0;
+      background: transparent;
+      color: #e2e8f0;
+      font-size: 15px;
+      text-align: left;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .language-option:hover, .language-option.active { background: #1e3a5f; color: #7dd3fc; }
+    .language-flag { font-size: 22px; line-height: 1; }
+    @media (max-width: 600px) {
+      .language-picker { right: 8px; min-width: 78px; }
+    }
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    h1 { margin: 0; color: #fff; font-size: 24px; }
+    .back {
+      color: #082f49;
+      background: #38bdf8;
+      border-radius: 9px;
+      padding: 10px 14px;
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .hint { color: #cbd5e1; font-size: 14px; }
+    #days {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .day {
+      padding: 12px;
+      background: #0f172a;
+      border: 1px solid #475569;
+      border-radius: 12px;
+    }
+    .lesson-row {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+    .lesson-number {
+      color: #7dd3fc;
+      font-weight: 800;
+      text-align: right;
+    }
+    h2 { margin: 0 0 8px; color: #7dd3fc; font-size: 17px; }
+    input {
+      width: 100%;
+      margin-top: 6px;
+      padding: 9px;
+      border: 1px solid #475569;
+      border-radius: 7px;
+      background: #1e293b;
+      color: #fff;
+    }
+    #save {
+      width: 100%;
+      margin-top: 16px;
+      padding: 12px;
+      border: 0;
+      border-radius: 10px;
+      background: #38bdf8;
+      color: #082f49;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      .room { padding: 14px; }
+      .top { align-items: flex-start; flex-direction: column; }
+      #days { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <select id="languageSelect" class="language-select" aria-label="Til">
+    <option value="uz">🇺🇿 O‘zbek</option>
+    <option value="ru">🇷🇺 Русский</option>
+    <option value="en">🇬🇧 English</option>
+  </select>
+  <div id="languagePicker" class="language-picker">
+    <button id="languageCurrent" class="language-current" type="button"></button>
+    <div class="language-options">
+      <button class="language-option" type="button" data-language="en">EN</button>
+      <button class="language-option" type="button" data-language="ru">RU</button>
+      <button class="language-option" type="button" data-language="uz">UZ</button>
+    </div>
+  </div>
+  <button id="menuButton" class="menu-button" type="button" aria-label="Menyuni ochish" aria-expanded="false">☰</button>
+  <nav id="menu" class="menu" aria-hidden="true">
+    <a href="index.html">Dars jadvali</a>
+    <a href="mening-darslarim.html">Mening darslarim va kitoblarim</a>
+  </nav>
+  <main class="room">
+    <div class="top">
+      <h1>Kundalikni yangilash</h1>
+      <a class="back" href="index.html">Jadvalga qaytish</a>
+    </div>
+    <p class="hint">Dushanbadan Shanbagacha raqamlarini kiriting. Saqlangandan keyin asosiy jadvalda ham ko‘rinadi.</p>
+    <form id="scheduleForm">
+      <div id="days"></div>
+      <button id="save" type="submit">Kundalikni saqlash</button>
+    </form>
+  </main>
+  <script>
+    const languageSelect = document.getElementById('languageSelect');
+    const languagePicker = document.getElementById('languagePicker');
+    const languageCurrent = document.getElementById('languageCurrent');
+    const languageLabels = { uz: 'UZ', ru: 'RU', en: 'EN' };
+    languageCurrent.textContent = languageLabels[localStorage.getItem('siteLanguage') || 'uz'];
+    languageCurrent.addEventListener('click', () => languagePicker.classList.toggle('open'));
+    document.querySelectorAll('.language-option').forEach(option => {
+      option.addEventListener('click', () => {
+        languageSelect.value = option.dataset.language;
+        languageSelect.dispatchEvent(new Event('change'));
+        languagePicker.classList.remove('open');
+      });
+    });
+    const translations = {
+      uz: { title: 'Kundalikni yangilash', back: 'Jadvalga qaytish', hint: 'Dushanbadan Shanbagacha raqamlarini kiriting. Saqlangandan keyin asosiy jadvalda ham ko‘rinadi.', save: 'Kundalikni saqlash', schedule: 'Dars jadvali', library: 'Mening darslarim va kitoblarim', placeholder: 'raqami (1-36)', days: ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'] },
+      ru: { title: 'Обновить дневник', back: 'Вернуться к расписанию', hint: 'Введите номера с понедельника по субботу. После сохранения они появятся в основном расписании.', save: 'Сохранить дневник', schedule: 'Расписание', library: 'Мои уроки и книги', placeholder: 'номер (1-36)', days: ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'] },
+      en: { title: 'Update diary', back: 'Back to schedule', hint: 'Enter numbers from Monday to Saturday. After saving, they will appear in the main schedule.', save: 'Save diary', schedule: 'Schedule', library: 'My lessons and books', placeholder: 'number (1-36)', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] }
+    };
+    function applyLanguage(language) {
+      const text = translations[language];
+      document.querySelector('h1').textContent = text.title;
+      document.querySelector('.back').textContent = text.back;
+      document.querySelector('.hint').textContent = text.hint;
+      document.getElementById('save').textContent = text.save;
+      document.querySelector('.menu a[href="index.html"]').textContent = text.schedule;
+      document.querySelector('.menu a[href="mening-darslarim.html"]').textContent = text.library;
+      document.querySelectorAll('input[data-day]').forEach((input, index) => {
+        const lessonWord = language === 'uz' ? 'dars' : language === 'ru' ? 'урок' : 'lesson';
+        input.placeholder = `${(index % 6) + 1}-${lessonWord} ${text.placeholder}`;
+      });
+      document.querySelectorAll('#days h2').forEach((heading, index) => {
+        heading.textContent = text.days[index];
+      });
+      document.documentElement.lang = language;
+      localStorage.setItem('siteLanguage', language);
+      languageCurrent.textContent = languageLabels[language];
+      document.querySelectorAll('.language-option').forEach(option => {
+        option.classList.toggle('active', option.dataset.language === language);
+      });
+    }
+    languageSelect.value = localStorage.getItem('siteLanguage') || 'uz';
+    applyLanguage(languageSelect.value);
+    languageSelect.addEventListener('change', event => applyLanguage(event.target.value));
+
+    const menuButton = document.getElementById('menuButton');
+    const menu = document.getElementById('menu');
+    menuButton.addEventListener('click', () => {
+      const isOpen = menu.classList.toggle('open');
+      menuButton.setAttribute('aria-expanded', String(isOpen));
+      menuButton.setAttribute('aria-label', isOpen ? 'Menyuni yopish' : 'Menyuni ochish');
+      menu.setAttribute('aria-hidden', String(!isOpen));
+    });
+
+    const days = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
+    const defaults = [
+      ['', '', '', '', '', ''],
+      ['', '', '', '', '', ''],
+      ['', '', '', '', '', ''],
+      ['', '', '', '', '', ''],
+      ['', '', '', '', '', ''],
+      ['', '', '', '', '', '']
+    ];
+    const saved = JSON.parse(localStorage.getItem('schoolSchedule') || '{}');
+    const personalItems = JSON.parse(localStorage.getItem('myScheduleItems') || '[]')
+      .map(item => String(item || '').trim());
+    const getLessonValue = subject => {
+      const itemIndex = personalItems.indexOf(String(subject || '').trim());
+      return itemIndex >= 0 ? String(itemIndex + 1) : (subject || '');
+    };
+    const container = document.getElementById('days');
+    days.forEach((day, dayIndex) => {
+      const box = document.createElement('section');
+      box.className = 'day';
+      box.innerHTML = `<h2>${day}</h2>`;
+      const subjects = Array.isArray(saved[day]) ? saved[day] : defaults[dayIndex];
+      subjects.forEach((subject, lessonIndex) => {
+        const row = document.createElement('div');
+        row.className = 'lesson-row';
+        row.innerHTML = `<span class="lesson-number">${lessonIndex + 1}.</span>`;
+        const input = document.createElement('input');
+        input.value = getLessonValue(subject === '-' ? '' : subject);
+        input.placeholder = `${lessonIndex + 1}-dars raqami (1-36)`;
+        input.dataset.day = day;
+        input.dataset.lesson = lessonIndex;
+        row.appendChild(input);
+        box.appendChild(row);
+      });
+      container.appendChild(box);
+    });
+    applyLanguage(languageSelect.value);
+    document.getElementById('scheduleForm').addEventListener('submit', event => {
+      event.preventDefault();
+      const schedule = {};
+      days.forEach(day => {
+        schedule[day] = [...container.querySelectorAll(`input[data-day="${day}"]`)]
+          .map(input => {
+            const value = input.value.trim();
+            const itemNumber = Number(value);
+            return Number.isInteger(itemNumber) && itemNumber >= 1 && itemNumber <= 36
+              ? String(itemNumber)
+              : value;
+          });
+      });
+      schedule.Yakshanba = ['Dam olish kuni'];
+      localStorage.setItem('schoolSchedule', JSON.stringify(schedule));
+      const save = document.getElementById('save');
+      save.textContent = 'Saqlandi ✓';
+      setTimeout(() => { save.textContent = 'Kundalikni saqlash'; }, 1500);
+    });
+
+  </script>
+</body>
+</html>
