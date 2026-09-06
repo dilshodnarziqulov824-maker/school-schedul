@@ -220,7 +220,7 @@
       <h1>Kundalikni yangilash</h1>
       <a class="back" href="index.html">Jadvalga qaytish</a>
     </div>
-    <p class="hint">Dushanbadan Shanbagacha raqamlarini kiriting. Saqlangandan keyin asosiy jadvalda ham ko‘rinadi.</p>
+    <p class="hint">Fan nomi yoki raqamini kiriting. Saqlanganda fan nomi “Mening darslarim va kitoblarim”ga ham qo‘shiladi.</p>
     <form id="scheduleForm">
       <div id="days"></div>
       <button id="clear" type="button">Kundalikni tozalash</button>
@@ -242,9 +242,9 @@
       });
     });
     const translations = {
-      uz: { title: 'Kundalikni yangilash', back: 'Jadvalga qaytish', hint: 'Dushanbadan Shanbagacha raqamlarini kiriting. Saqlangandan keyin asosiy jadvalda ham ko‘rinadi.', save: 'Kundalikni saqlash', clear: 'Kundalikni tozalash', confirmClear: 'Barcha dars raqamlari va fan nomlari o‘chirilsinmi?', schedule: 'Dars jadvali', library: 'Mening darslarim va kitoblarim', placeholder: 'raqami (1-36)', days: ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'] },
-      ru: { title: 'Обновить дневник', back: 'Вернуться к расписанию', hint: 'Введите номера с понедельника по субботу. После сохранения они появятся в основном расписании.', save: 'Сохранить дневник', clear: 'Очистить дневник', confirmClear: 'Удалить все номера уроков и названия предметов?', schedule: 'Расписание', library: 'Мои уроки и книги', placeholder: 'номер (1-36)', days: ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'] },
-      en: { title: 'Update diary', back: 'Back to schedule', hint: 'Enter numbers from Monday to Saturday. After saving, they will appear in the main schedule.', save: 'Save diary', clear: 'Clear diary', confirmClear: 'Delete all lesson numbers and subject names?', schedule: 'Schedule', library: 'My lessons and books', placeholder: 'number (1-36)', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] }
+      uz: { title: 'Kundalikni yangilash', back: 'Jadvalga qaytish', hint: 'Fan nomi yoki raqamini kiriting. Saqlanganda fan nomi “Mening darslarim va kitoblarim”ga ham qo‘shiladi.', save: 'Kundalikni saqlash', clear: 'Kundalikni tozalash', confirmClear: 'Barcha dars raqamlari va fan nomlari o‘chirilsinmi?', schedule: 'Dars jadvali', library: 'Mening darslarim va kitoblarim', placeholder: 'raqami yoki fan nomi', days: ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'] },
+      ru: { title: 'Обновить дневник', back: 'Вернуться к расписанию', hint: 'Введите номер или название предмета. После сохранения название также добавится в мои уроки и книги.', save: 'Сохранить дневник', clear: 'Очистить дневник', confirmClear: 'Удалить все номера уроков и названия предметов?', schedule: 'Расписание', library: 'Мои уроки и книги', placeholder: 'номер или название', days: ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'] },
+      en: { title: 'Update diary', back: 'Back to schedule', hint: 'Enter a lesson number or subject name. Saving also adds the name to my lessons and books.', save: 'Save diary', clear: 'Clear diary', confirmClear: 'Delete all lesson numbers and subject names?', schedule: 'Schedule', library: 'My lessons and books', placeholder: 'number or subject name', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] }
     };
     function applyLanguage(language) {
       const text = translations[language];
@@ -334,6 +334,16 @@
       });
       schedule.Yakshanba = ['Dam olish kuni'];
       localStorage.setItem('schoolSchedule', JSON.stringify(schedule));
+      const savedItems = JSON.parse(localStorage.getItem('myScheduleItems') || '[]')
+        .map(item => String(item || '').trim())
+        .filter(Boolean);
+      const newItems = Object.values(schedule)
+        .flat()
+        .map(value => String(value || '').trim())
+        .filter(value => value && value !== 'Dam olish kuni' && !/^\d+$/.test(value));
+      localStorage.setItem('myScheduleItems', JSON.stringify(
+        [...savedItems, ...newItems.filter(item => !savedItems.includes(item))]
+      ));
       const save = document.getElementById('save');
       save.textContent = 'Saqlandi ✓';
       setTimeout(() => { save.textContent = 'Kundalikni saqlash'; }, 1500);
