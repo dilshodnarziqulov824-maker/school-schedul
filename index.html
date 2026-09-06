@@ -87,6 +87,22 @@
     margin-bottom: 18px;
   }
 
+  .next-lesson {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+    padding: 18px;
+    margin-bottom: 18px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 16px;
+  }
+
+  .next-lesson small { color: #94a3b8; display: block; margin-bottom: 5px; }
+  .next-lesson strong { color: #fff; font-size: 20px; }
+  .countdown { color: #38bdf8; font-size: 24px; font-weight: 800; white-space: nowrap; }
+
   .stat { padding: 12px; background: #0f172a; border-radius: 12px; }
   .stat strong { display: block; font-size: 22px; color: #38bdf8; }
   .stat small { color: #94a3b8; }
@@ -173,11 +189,20 @@
   }
 
   .subjects li {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
     padding: 8px 0;
     border-bottom: 1px solid rgba(255,255,255,0.4);
     line-height: 1.4;
     color: #ffffff;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  }
+
+  .subjects li small {
+    color: #bae6fd;
+    white-space: nowrap;
+    font-size: 12px;
   }
 
   .subjects li:last-child {
@@ -202,6 +227,7 @@
     }
     .tools { flex-direction: column; }
     .stats { grid-template-columns: 1fr; }
+    .next-lesson { align-items: flex-start; flex-direction: column; }
   }
 </style>
 </head>
@@ -223,6 +249,13 @@
       <div class="stat"><strong id="todayStat">—</strong><small>Bugungi kun</small></div>
       <div class="stat"><strong id="lessonStat">—</strong><small>Bugungi darslar</small></div>
       <div class="stat"><strong id="clockStat">--:--</strong><small>Hozirgi vaqt</small></div>
+    </section>
+    <section class="next-lesson">
+      <div>
+        <small>Keyingi dars</small>
+        <strong id="nextLesson">Hisoblanmoqda...</strong>
+      </div>
+      <div id="countdown" class="countdown">--:--:--</div>
     </section>
     <div id="schedule" class="schedule-grid"></div>
   </div>
@@ -332,6 +365,16 @@
     const todayStat = document.getElementById('todayStat');
     const lessonStat = document.getElementById('lessonStat');
     const clockStat = document.getElementById('clockStat');
+    const nextLesson = document.getElementById('nextLesson');
+    const countdown = document.getElementById('countdown');
+    const lessonTimes = [
+      ['08:00', '08:45'],
+      ['08:50', '09:35'],
+      ['09:45', '10:30'],
+      ['10:40', '11:25'],
+      ['11:35', '12:20'],
+      ['12:30', '13:15']
+    ];
 
     todayStat.textContent = todayName;
     lessonStat.textContent = todayName === 'Yakshanba'
@@ -347,6 +390,51 @@
 
     updateClock();
     setInterval(updateClock, 1000);
+
+    function getTodayLesson(index) {
+      const subject = scheduleByDay[todayName]?.[index];
+      return subject && subject !== '0' && !subject.includes('-') ? subject : null;
+    }
+
+    function updateNextLesson() {
+      if (todayName === 'Yakshanba') {
+        nextLesson.textContent = 'Bugun dam olish kuni';
+        countdown.textContent = '—';
+        return;
+      }
+
+      const now = new Date();
+      let nextIndex = -1;
+      let target = null;
+
+      lessonTimes.some((time, index) => {
+        const [hours, minutes] = time[0].split(':');
+        const start = new Date(now);
+        start.setHours(Number(hours), Number(minutes), 0, 0);
+        if (start > now && getTodayLesson(index)) {
+          nextIndex = index;
+          target = start;
+          return true;
+        }
+        return false;
+      });
+
+      if (nextIndex === -1) {
+        nextLesson.textContent = 'Bugungi darslar tugadi';
+        countdown.textContent = '—';
+        return;
+      }
+
+      nextLesson.textContent = `${nextIndex + 1}-dars: ${getTodayLesson(nextIndex)}`;
+      const seconds = Math.max(0, Math.floor((target - now) / 1000));
+      const hours = String(Math.floor(seconds / 3600)).padStart(2, '0');
+      const minutes = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+      const remainSeconds = String(seconds % 60).padStart(2, '0');
+      countdown.textContent = `${hours}:${minutes}:${remainSeconds}`;
+    }
+
+    updateNextLesson();
+    setInterval(updateNextLesson, 1000);
 
     week.forEach((day) => {
       const subjects = scheduleByDay[day] || ['-'];
@@ -388,7 +476,14 @@
       content.className = 'day-content';
       content.innerHTML = `
         <ul class="subjects">
-          ${subjects.map(subject => `<li>${subject === '0' ? '<span class="empty">-</span>' : subject}</li>`).join('')}
+          ${subjects.map((subject, index) => `
+            <li>
+              <span>${subject === '0' ? '<span class="empty">-</span>' : subject}</span>
+              ${subject !== '0' && subject !== 'Dam olish kuni' && !subject.includes('-') && lessonTimes[index]
+                ? `<small>${lessonTimes[index][0]} – ${lessonTimes[index][1]}</small>`
+                : ''}
+            </li>
+          `).join('')}
         </ul>
       `;
 
