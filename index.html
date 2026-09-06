@@ -14,25 +14,82 @@
   <meta name="twitter:description" content="School Schedul: oson va tez dars jadvali yaratish va boshqarish uchun veb-ilova." />
 
 <style>
-  * {
-    transition: 1s;
-    box-sizing: border-box;
-    color: snow;
-  }
+  * { box-sizing: border-box; }
 
   body {
     margin: 0;
     padding: 30px 20px;
     font-family: Arial, sans-serif;
-    background: #424242;
-    color: #111;
+    background: #0f172a;
+    color: #e2e8f0;
     background-repeat: no-repeat;
   }
 
   .container {
-    max-width: 1100px;
+    max-width: 1180px;
     margin: 0 auto;
   }
+
+  .topbar, .hero, .tools, .stats {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 18px;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    margin-bottom: 22px;
+  }
+
+  .brand { font-weight: 800; letter-spacing: .4px; }
+  .brand span { color: #38bdf8; }
+  .live { color: #86efac; font-size: 13px; }
+
+  .hero {
+    padding: 28px;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #1e3a8a, #0f766e);
+  }
+
+  .hero h1 { text-align: left; margin: 0 0 8px; color: white; }
+  .hero p { margin: 0; color: #dbeafe; }
+
+  .tools {
+    display: flex;
+    gap: 12px;
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+
+  .tools input {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 14px;
+    border: 1px solid #475569;
+    border-radius: 10px;
+    background: #0f172a;
+    color: white;
+    font-size: 15px;
+  }
+
+  .tools button, .day-toggle {
+    transition: .25s ease;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 14px;
+    margin-bottom: 18px;
+  }
+
+  .stat { padding: 12px; background: #0f172a; border-radius: 12px; }
+  .stat strong { display: block; font-size: 22px; color: #38bdf8; }
+  .stat small { color: #94a3b8; }
 
   h1 {
     text-align: center;
@@ -76,6 +133,7 @@
     cursor: pointer;
     padding: 8px 8px 12px;
     color: #ffffff;
+    transition: .25s ease;
   }
 
   .day-toggle.active {
@@ -131,6 +189,9 @@
     font-style: italic;
   }
 
+  .day-card.hidden-card { display: none; }
+  .no-results { text-align: center; color: #94a3b8; padding: 30px; }
+
   @media (max-width: 600px) {
     h1 {
       font-size: 24px;
@@ -139,14 +200,30 @@
     .day-name {
       font-size: 18px;
     }
+    .tools { flex-direction: column; }
+    .stats { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 
 <body>
   <div class="container">
-    <h1>Dars jadvali</h1>
-    <div id="headerNote" class="header-note"></div>
+    <header class="topbar">
+      <div class="brand">School <span>Schedule</span></div>
+      <div class="live">● Jonli jadval</div>
+    </header>
+    <section class="hero">
+      <h1>Dars jadvali</h1>
+      <p id="headerNote"></p>
+    </section>
+    <section class="tools">
+      <input id="searchInput" type="search" placeholder="Fan yoki kunni qidiring...">
+    </section>
+    <section class="stats">
+      <div class="stat"><strong id="todayStat">—</strong><small>Bugungi kun</small></div>
+      <div class="stat"><strong id="lessonStat">—</strong><small>Bugungi darslar</small></div>
+      <div class="stat"><strong id="clockStat">--:--</strong><small>Hozirgi vaqt</small></div>
+    </section>
     <div id="schedule" class="schedule-grid"></div>
   </div>
 
@@ -251,6 +328,25 @@
       `Bugun ${todayText} (${todayName}). Ertaga ${tomorrowText} (${tomorrowName}) kuni ${tomorrowPart}-qism ko'rsatiladi.`;
 
     const schedule = document.getElementById('schedule');
+    const searchInput = document.getElementById('searchInput');
+    const todayStat = document.getElementById('todayStat');
+    const lessonStat = document.getElementById('lessonStat');
+    const clockStat = document.getElementById('clockStat');
+
+    todayStat.textContent = todayName;
+    lessonStat.textContent = todayName === 'Yakshanba'
+      ? '0'
+      : scheduleByDay[todayName].filter(subject => subject !== '0').length;
+
+    function updateClock() {
+      clockStat.textContent = new Date().toLocaleTimeString('uz-UZ', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000);
 
     week.forEach((day) => {
       const subjects = scheduleByDay[day] || ['-'];
@@ -260,6 +356,7 @@
       const isToday = day === todayDay;
 
       card.className = `day-card ${isOpen ? 'open' : ''}`;
+      card.dataset.search = `${day} ${subjects.join(' ')}`.toLowerCase();
       if (isSunday) {
         card.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.35), rgba(0,0,0)), url('${restDayImageUrl}')`;
         card.style.backgroundSize = 'cover';
@@ -320,6 +417,13 @@
       card.appendChild(button);
       card.appendChild(content);
       schedule.appendChild(card);
+    });
+
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.trim().toLowerCase();
+      document.querySelectorAll('.day-card').forEach(card => {
+        card.classList.toggle('hidden-card', !card.dataset.search.includes(query));
+      });
     });
   </script>
 </body>
