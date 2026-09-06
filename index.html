@@ -130,7 +130,7 @@
   }
   .language-picker {
     position: absolute;
-    top: 9px;
+    top: 10px;
     right: 14px;
     z-index: 20;
     width: max-content;
@@ -819,9 +819,16 @@
   </div>
 
   <script>
-    window.setTimeout(() => {
-      document.getElementById('introScreen').classList.add('hide');
-    }, 3000);
+    const introScreen = document.getElementById('introScreen');
+    const introSeenKey = 'schoolScheduleIntroSeen';
+    if (localStorage.getItem(introSeenKey)) {
+      introScreen.classList.add('hide');
+    } else {
+      localStorage.setItem(introSeenKey, 'true');
+      window.setTimeout(() => {
+        introScreen.classList.add('hide');
+      }, 3000);
+    }
 
     const languageSelect = document.getElementById('languageSelect');
     const languagePicker = document.getElementById('languagePicker');
