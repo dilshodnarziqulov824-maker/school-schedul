@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dars jadvali</title>
+
+</head>
+
+<body>
+  <div class="container">
+    <h1>Dars jadvali</h1>
+    <div id="headerNote" class="header-note"></div>
+    <div id="schedule" class="schedule-grid"></div>
+  </div>
+
+  <script>
+    const sections = [
+      [
+        '1 Kelajak soati',
+        '2 Adabiyot',
+        '3 Algebra',
+        '4 CHQBT',
+        '5 Kimyo',
+        '6 Jismoniy tarbiya'
+      ],
+      [
+        '1 Tadbirkorlik asoslari',
+        '2 ChQBT',
+        '3 Algebra',
+        '4 Fizika',
+        '5 Kimyo',
+        '6 Biologiya'
+      ],
+      [
+        '1 Ingliz tili',
+        '2 Informatika',
+        '3 Jismoniy tarbiya',
+        "4 O'zbekiston tarixi",
+        '5 ------',
+        '6 ------'
+      ],
+      [
+        '1 Ingliz tili',
+        '2 ChQBT',
+        '3 Rus tili',
+        '4 Adabiyot',
+        '5 Davlat huquq asoslari',
+        '6 -----'
+      ],
+      [
+        '1 Rus tili',
+        '2 Informatika',
+        '3 Algebra',
+        '4 Fizika',
+        '5 Biologiya',
+        '6 Jahon tarixi'
+      ],
+      [
+        '1 Algebra',
+        '2 Ona tili',
+        '3 Adabiyot',
+        '4 Tarbiya',
+        '5 Astronomiya',
+        '6 -----'
+      ]
+    ];
+
+    const week = [
+      'Dushanba',
+      'Seshanba',
+      'Chorshanba',
+      'Payshanba',
+      'Juma',
+      'Shanba',
+      'Yakshanba'
+    ];
+
+    const scheduleByDay = {
+      Dushanba: sections[0],
+      Seshanba: sections[1],
+      Chorshanba: sections[2],
+      Payshanba: sections[3],
+      Juma: sections[4],
+      Shanba: sections[5],
+      Yakshanba: ['Dam olish kuni']
+    };
+
+    const dayToPart = {
+      Dushanba: 1,
+      Seshanba: 2,
+      Chorshanba: 3,
+      Payshanba: 4,
+      Juma: 5,
+      Shanba: 6,
+      Yakshanba: 1
+    };
+
+    const todayDate = new Date();
+    const uzDayNames = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
+    const todayName = uzDayNames[todayDate.getDay()];
+    const tomorrowDate = new Date(todayDate);
+    tomorrowDate.setDate(todayDate.getDate() + 1);
+    const tomorrowName = uzDayNames[tomorrowDate.getDay()];
+    const tomorrowPart = dayToPart[tomorrowName] || 1;
+    const todayText = `${todayDate.getDate()}.${String(todayDate.getMonth() + 1).padStart(2, '0')}.${todayDate.getFullYear()}`;
+    const tomorrowText = `${tomorrowDate.getDate()}.${String(tomorrowDate.getMonth() + 1).padStart(2, '0')}.${tomorrowDate.getFullYear()}`;
+
+    const defaultOpenDay = todayName === 'Shanba' ? 'Shanba' : (todayName === 'Yakshanba' ? 'Dushanba' : todayName);
+    const dayImageUrl = 'dars.png';
+    const restDayImageUrl = 'dam.png';
+    const todayDay = todayName;
+
+    document.getElementById('headerNote').textContent =
+      `Bugun ${todayText} (${todayName}). Ertaga ${tomorrowText} (${tomorrowName}) kuni ${tomorrowPart}-qism ko'rsatiladi.`;
+
+    const schedule = document.getElementById('schedule');
+
+    week.forEach((day) => {
+      const subjects = scheduleByDay[day] || ['-'];
+      const card = document.createElement('div');
+      const isOpen = day === defaultOpenDay;
+      const isSunday = day === 'Yakshanba';
+      const isToday = day === todayDay;
+
+      card.className = `day-card ${isOpen ? 'open' : ''}`;
+      if (isSunday) {
+        card.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.35), rgba(0,0,0)), url('${restDayImageUrl}')`;
+        card.style.backgroundSize = 'cover';
+        card.style.backgroundPosition = 'center';
+        card.style.backgroundRepeat = 'no-repeat';
+      } else {
+        card.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.35), rgba(0,0,0)), url('${dayImageUrl}')`;
+        card.style.backgroundSize = 'cover';
+        card.style.backgroundPosition = 'center';
+        card.style.backgroundRepeat = 'no-repeat';
+      }
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `day-toggle ${isOpen ? 'active' : ''} ${isToday ? 'today-button' : ''}`;
+      button.textContent = day;
+
+      if (isSunday) {
+        button.style.color = '#000';
+        button.style.fontWeight = '700';
+      }
+
+      if (isToday) {
+        button.style.border = '2px solid #fff';
+        button.style.borderRadius = '8px';
+      }
+
+      const content = document.createElement('div');
+      content.className = 'day-content';
+      content.innerHTML = `
+        <ul class="subjects">
+          ${subjects.map(subject => `<li>${subject === '0' ? '<span class="empty">-</span>' : subject}</li>`).join('')}
+        </ul>
+      `;
+
+      if (!isOpen) {
+        content.classList.add('collapsed');
+      }
+
+      button.addEventListener('click', () => {
+        const isVisible = !content.classList.contains('collapsed');
+
+        document.querySelectorAll('.day-content').forEach(el => {
+          el.style.transition = 'max-height 0.5s ease, opacity 0.5s ease, padding 0.5s ease, margin 0.5s ease';
+          el.classList.add('collapsed');
+        });
+        document.querySelectorAll('.day-toggle').forEach(el => {
+          el.classList.remove('active');
+        });
+
+        if (!isVisible) {
+          content.style.transition = 'max-height 1s ease, opacity 1s ease, padding 1s ease, margin 1s ease';
+          content.classList.remove('collapsed');
+          button.classList.add('active');
+        }
+      });
+
+      card.appendChild(button);
+      card.appendChild(content);
+      schedule.appendChild(card);
+    });
+  </script>
+</body>
+<style>
+  * {
+    transition: 1s;
+    box-sizing: border-box;
+    color: snow;
+  }
+
+  body {
+    margin: 0;
+    padding: 30px 20px;
+    font-family: Arial, sans-serif;
+    background: #424242;
+    color: #111;
+    background-repeat: no-repeat;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    text-align: center;
+    margin: 0 0 12px;
+    font-size: 30px;
+  }
+
+  .header-note {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 22px;
+  }
+
+  .schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .day-card {
+    background: #fff;
+    border: 1px solid #000000;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .day-card.open {
+    border: 2px solid #030303;
+    background: #eef7ff;
+  }
+
+  .day-toggle {
+    width: 100%;
+    text-align: left;
+    border: 0;
+    background: transparent;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 8px 8px 12px;
+    color: #ffffff;
+  }
+
+  .day-toggle.active {
+    background: rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+  }
+
+  .today-button {
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.9);
+    background: rgba(255,255,255,0.12);
+  }
+
+  .day-content {
+    margin-top: 8px;
+    background: rgba(0, 0, 0, 0.28);
+    padding: 8px 10px;
+    border-radius: 8px;
+    max-height: 1000px;
+    opacity: 1;
+    overflow: hidden;
+    transition: max-height 1s ease, opacity 1s ease, padding 0.5s ease, margin 0.5s ease;
+  }
+
+  .day-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+  }
+
+  .subjects {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    color: #000000;
+  }
+
+  .subjects li {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.4);
+    line-height: 1.4;
+    color: #ffffff;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  }
+
+  .subjects li:last-child {
+    border-bottom: 0;
+  }
+
+  .empty {
+    color: #fff;
+    font-style: italic;
+  }
+
+  @media (max-width: 600px) {
+    h1 {
+      font-size: 24px;
+    }
+
+    .day-name {
+      font-size: 18px;
+    }
+  }
+</style>
+
+</html>
