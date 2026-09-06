@@ -87,6 +87,34 @@
 
   .tools button:hover { background: #7dd3fc; }
 
+  .save-button {
+    display: block;
+    margin: 22px auto 0;
+    border: 0;
+    border-radius: 10px;
+    padding: 12px 28px;
+    background: #38bdf8;
+    color: #082f49;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .save-button:hover { background: #7dd3fc; }
+
+  .save-day-button {
+    width: 100%;
+    margin-top: 12px;
+    border: 1px solid #38bdf8;
+    border-radius: 8px;
+    padding: 9px;
+    background: #0284c7;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .save-day-button:hover { background: #0369a1; }
+
   .tools button, .day-toggle {
     transition: .25s ease;
   }
@@ -355,7 +383,6 @@
     </section>
     <section class="tools">
       <input id="searchInput" type="search" placeholder="Fan yoki kunni qidiring...">
-      <button id="saveSchedule" type="button">Saqlash</button>
     </section>
     <section class="stats">
       <div class="stat"><strong id="todayStat">—</strong><small>Bugungi kun</small></div>
@@ -660,6 +687,7 @@
       const isToday = day === todayDay;
 
       card.className = `day-card ${isOpen ? 'open' : ''}`;
+      card.dataset.day = day;
       card.dataset.search = `${day} ${subjects.join(' ')}`.toLowerCase();
       if (isSunday) {
         card.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.35), rgba(0,0,0)), url('${restDayImageUrl}')`;
@@ -704,6 +732,7 @@
             </li>
           `).join('')}
         </ul>
+        <button class="save-day-button" type="button">Saqlash</button>
       `;
 
       if (!isOpen) {
@@ -738,28 +767,31 @@
 
     renderSchedule();
 
-    document.getElementById('saveSchedule').addEventListener('click', () => {
-      document.querySelectorAll('.day-card').forEach(card => {
-        const day = card.dataset.search.split(' ')[0];
-        const dayName = week.find(item => item.toLowerCase() === day);
-        if (!dayName) return;
+    function saveDay(card) {
+      const dayName = week.find(day => card.dataset.day === day);
+      if (!dayName) return;
 
-        const inputs = [...card.querySelectorAll('.subject-input')];
-        if (inputs.length) {
-          scheduleByDay[dayName] = inputs.map(input => input.value.trim());
-        }
-      });
-
+      const inputs = [...card.querySelectorAll('.subject-input')];
+      scheduleByDay[dayName] = inputs.map(input => input.value.trim());
       localStorage.setItem('schoolSchedule', JSON.stringify(scheduleByDay));
       lessonStat.textContent = todayName === 'Yakshanba'
         ? '0'
         : scheduleByDay[todayName].filter(subject => subject && subject !== '0').length;
       renderSchedule();
       updateNextLesson();
-      document.getElementById('saveSchedule').textContent = 'Saqlandi ✓';
+      const newCard = [...document.querySelectorAll('.day-card')]
+        .find(item => item.dataset.day === dayName);
+      const saveButton = newCard?.querySelector('.save-day-button');
+      if (saveButton) saveButton.textContent = 'Saqlandi ✓';
       setTimeout(() => {
-        document.getElementById('saveSchedule').textContent = 'Saqlash';
+        if (saveButton) saveButton.textContent = 'Saqlash';
       }, 1500);
+    }
+
+    document.addEventListener('click', event => {
+      if (event.target.classList.contains('save-day-button')) {
+        saveDay(event.target.closest('.day-card'));
+      }
     });
 
     searchInput.addEventListener('input', () => {
