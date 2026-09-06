@@ -75,6 +75,18 @@
     font-size: 15px;
   }
 
+  .tools button {
+    border: 0;
+    border-radius: 10px;
+    padding: 0 18px;
+    background: #38bdf8;
+    color: #082f49;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .tools button:hover { background: #7dd3fc; }
+
   .tools button, .day-toggle {
     transition: .25s ease;
   }
@@ -102,6 +114,89 @@
   .next-lesson small { color: #94a3b8; display: block; margin-bottom: 5px; }
   .next-lesson strong { color: #fff; font-size: 20px; }
   .countdown { color: #38bdf8; font-size: 24px; font-weight: 800; white-space: nowrap; }
+
+  .calendar {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+
+  .calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .calendar-header h2 { margin: 0; font-size: 20px; color: #fff; }
+  .calendar-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    padding: 0;
+  }
+  .calendar-toggle span:last-child { color: #38bdf8; font-size: 14px; }
+  .calendar-body {
+    max-height: 500px;
+    opacity: 1;
+    overflow: hidden;
+    transition: max-height .5s ease, opacity .5s ease, margin-top .5s ease;
+  }
+  .calendar-body.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+  }
+  .calendar-header button {
+    border: 1px solid #475569;
+    border-radius: 8px;
+    padding: 6px 10px;
+    background: #0f172a;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+
+  .calendar-weekday {
+    padding: 6px 2px;
+    color: #94a3b8;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  .calendar-day {
+    min-height: 42px;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 8px 4px;
+    background: #0f172a;
+    color: #cbd5e1;
+    text-align: center;
+  }
+
+  .calendar-day.lesson-day { border-color: #0ea5e9; color: #fff; }
+  .calendar-day.today { background: #0284c7; border-color: #7dd3fc; color: #fff; font-weight: 800; }
+  .calendar-day.selected {
+    border: 2px solid #facc15;
+    box-shadow: 0 0 0 3px rgba(250, 204, 21, .3);
+    transform: translateY(-2px);
+  }
+  .calendar-day.clickable { cursor: pointer; }
+  .calendar-day.clickable:hover { border-color: #facc15; }
+  .calendar-day.empty { border-color: transparent; background: transparent; }
+  .calendar-day small { display: block; margin-top: 3px; color: #86efac; font-size: 9px; }
 
   .stat { padding: 12px; background: #0f172a; border-radius: 12px; }
   .stat strong { display: block; font-size: 22px; color: #38bdf8; }
@@ -205,6 +300,22 @@
     font-size: 12px;
   }
 
+  .subject-input {
+    width: 100%;
+    border: 1px solid rgba(255,255,255,.35);
+    border-radius: 6px;
+    padding: 7px 8px;
+    background: rgba(15,23,42,.75);
+    color: #fff;
+    font: inherit;
+  }
+
+  .lesson-number {
+    min-width: 18px;
+    color: #bae6fd;
+    font-weight: 800;
+  }
+
   .subjects li:last-child {
     border-bottom: 0;
   }
@@ -244,6 +355,7 @@
     </section>
     <section class="tools">
       <input id="searchInput" type="search" placeholder="Fan yoki kunni qidiring...">
+      <button id="saveSchedule" type="button">Saqlash</button>
     </section>
     <section class="stats">
       <div class="stat"><strong id="todayStat">—</strong><small>Bugungi kun</small></div>
@@ -256,6 +368,22 @@
         <strong id="nextLesson">Hisoblanmoqda...</strong>
       </div>
       <div id="countdown" class="countdown">--:--:--</div>
+    </section>
+    <section class="calendar">
+      <div class="calendar-header">
+        <button id="calendarToggle" class="calendar-toggle" type="button" aria-expanded="true">
+          <span id="calendarTitle"></span>
+          <span>Yopish ▲</span>
+        </button>
+      </div>
+      <div id="calendarBody" class="calendar-body">
+        <div class="calendar-header">
+          <button id="previousMonth" type="button" aria-label="Oldingi oy">‹</button>
+          <span></span>
+          <button id="nextMonth" type="button" aria-label="Keyingi oy">›</button>
+        </div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+      </div>
     </section>
     <div id="schedule" class="schedule-grid"></div>
   </div>
@@ -332,6 +460,26 @@
       Yakshanba: ['Dam olish kuni']
     };
 
+    Object.keys(scheduleByDay).forEach(day => {
+      scheduleByDay[day] = scheduleByDay[day].map(subject =>
+        subject.replace(/^\d+\s*/, '')
+      );
+    });
+
+    const savedSchedule = localStorage.getItem('schoolSchedule');
+    if (savedSchedule) {
+      try {
+        const parsedSchedule = JSON.parse(savedSchedule);
+        Object.keys(scheduleByDay).forEach(day => {
+          if (Array.isArray(parsedSchedule[day])) {
+            scheduleByDay[day] = parsedSchedule[day].slice(0, 6);
+          }
+        });
+      } catch (error) {
+        console.error('Saqlangan jadvalni o‘qib bo‘lmadi.', error);
+      }
+    }
+
     const dayToPart = {
       Dushanba: 1,
       Seshanba: 2,
@@ -367,6 +515,17 @@
     const clockStat = document.getElementById('clockStat');
     const nextLesson = document.getElementById('nextLesson');
     const countdown = document.getElementById('countdown');
+    const calendarTitle = document.getElementById('calendarTitle');
+    const calendarGrid = document.getElementById('calendarGrid');
+    const calendarBody = document.getElementById('calendarBody');
+    const calendarToggle = document.getElementById('calendarToggle');
+    const calendarMonth = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1);
+    const selectedDate = new Date(todayDate);
+    const monthNames = [
+      'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
+      'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'
+    ];
+    const calendarWeekdays = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya'];
     const lessonTimes = [
       ['08:00', '08:45'],
       ['08:50', '09:35'],
@@ -379,7 +538,7 @@
     todayStat.textContent = todayName;
     lessonStat.textContent = todayName === 'Yakshanba'
       ? '0'
-      : scheduleByDay[todayName].filter(subject => subject !== '0').length;
+      : scheduleByDay[todayName].filter(subject => subject && subject !== '0').length;
 
     function updateClock() {
       clockStat.textContent = new Date().toLocaleTimeString('uz-UZ', {
@@ -436,7 +595,64 @@
     updateNextLesson();
     setInterval(updateNextLesson, 1000);
 
-    week.forEach((day) => {
+    function renderCalendar() {
+      calendarTitle.textContent = `${monthNames[calendarMonth.getMonth()]} ${calendarMonth.getFullYear()}`;
+      calendarGrid.innerHTML = calendarWeekdays
+        .map(day => `<div class="calendar-weekday">${day}</div>`)
+        .join('');
+
+      const firstDay = (new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1).getDay() + 6) % 7;
+      const daysInMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 0).getDate();
+
+      for (let index = 0; index < firstDay; index += 1) {
+        calendarGrid.insertAdjacentHTML('beforeend', '<div class="calendar-day empty"></div>');
+      }
+
+      for (let dayNumber = 1; dayNumber <= daysInMonth; dayNumber += 1) {
+        const date = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), dayNumber);
+        const dayName = uzDayNames[date.getDay()];
+        const hasLesson = dayName !== 'Yakshanba';
+        const isToday = date.toDateString() === todayDate.toDateString();
+        const isSelected = date.toDateString() === selectedDate.toDateString();
+        const dayElement = document.createElement('div');
+
+        dayElement.className = `calendar-day clickable ${hasLesson ? 'lesson-day' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}`;
+        dayElement.innerHTML = `${dayNumber}${hasLesson ? '<small>Dars</small>' : '<small>Dam</small>'}`;
+        dayElement.addEventListener('click', () => {
+          selectedDate.setTime(date.getTime());
+          renderCalendar();
+
+          const selectedDay = uzDayNames[selectedDate.getDay()];
+          const selectedButton = [...document.querySelectorAll('.day-toggle')]
+            .find(button => button.textContent === selectedDay);
+          if (selectedButton) selectedButton.click();
+        });
+        calendarGrid.appendChild(dayElement);
+      }
+    }
+
+    document.getElementById('previousMonth').addEventListener('click', () => {
+      calendarMonth.setMonth(calendarMonth.getMonth() - 1);
+      renderCalendar();
+    });
+
+    document.getElementById('nextMonth').addEventListener('click', () => {
+      calendarMonth.setMonth(calendarMonth.getMonth() + 1);
+      renderCalendar();
+    });
+
+    calendarToggle.addEventListener('click', () => {
+      const isOpen = !calendarBody.classList.toggle('collapsed');
+      calendarToggle.setAttribute('aria-expanded', String(isOpen));
+      calendarToggle.querySelector('span:last-child').textContent = isOpen ? 'Yopish ▲' : 'Ochish ▼';
+    });
+
+    renderCalendar();
+
+    function renderSchedule() {
+      schedule.innerHTML = '';
+
+      week.forEach((day) => {
       const subjects = scheduleByDay[day] || ['-'];
       const card = document.createElement('div');
       const isOpen = day === defaultOpenDay;
@@ -478,7 +694,10 @@
         <ul class="subjects">
           ${subjects.map((subject, index) => `
             <li>
-              <span>${subject === '0' ? '<span class="empty">-</span>' : subject}</span>
+              <span class="lesson-number">${subject === 'Dam olish kuni' ? '' : index + 1}</span>
+              ${subject === 'Dam olish kuni'
+                ? '<span>Dam olish kuni</span>'
+                : `<input class="subject-input" value="${subject.replace(/"/g, '&quot;')}" aria-label="${day} ${index + 1}-dars fani">`}
               ${subject !== '0' && subject !== 'Dam olish kuni' && !subject.includes('-') && lessonTimes[index]
                 ? `<small>${lessonTimes[index][0]} – ${lessonTimes[index][1]}</small>`
                 : ''}
@@ -512,6 +731,35 @@
       card.appendChild(button);
       card.appendChild(content);
       schedule.appendChild(card);
+      });
+
+      searchInput.dispatchEvent(new Event('input'));
+    }
+
+    renderSchedule();
+
+    document.getElementById('saveSchedule').addEventListener('click', () => {
+      document.querySelectorAll('.day-card').forEach(card => {
+        const day = card.dataset.search.split(' ')[0];
+        const dayName = week.find(item => item.toLowerCase() === day);
+        if (!dayName) return;
+
+        const inputs = [...card.querySelectorAll('.subject-input')];
+        if (inputs.length) {
+          scheduleByDay[dayName] = inputs.map(input => input.value.trim());
+        }
+      });
+
+      localStorage.setItem('schoolSchedule', JSON.stringify(scheduleByDay));
+      lessonStat.textContent = todayName === 'Yakshanba'
+        ? '0'
+        : scheduleByDay[todayName].filter(subject => subject && subject !== '0').length;
+      renderSchedule();
+      updateNextLesson();
+      document.getElementById('saveSchedule').textContent = 'Saqlandi ✓';
+      setTimeout(() => {
+        document.getElementById('saveSchedule').textContent = 'Saqlash';
+      }, 1500);
     });
 
     searchInput.addEventListener('input', () => {
