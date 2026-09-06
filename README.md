@@ -1,1 +1,1 @@
-# school-schedul
+# school-schedule
